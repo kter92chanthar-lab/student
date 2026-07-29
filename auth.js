@@ -69,19 +69,6 @@ async function callAPI(action, data) {
   }
 }
 
-// 🔴 ຂຽນຕໍ່ໃນໜ້າ dashboard: login ສຳເລັດແລ້ວ ໄປໜ້າໃດ
-function onLoginSuccess(access) {
-  console.log('Login success:', access);
-  // if (access.role === 'Admin') window.location.href = 'admin.html';
-  // else if (access.role === 'Teacher') window.location.href = 'teacher.html';
-  // else window.location.href = 'viewer.html';
-}
-
-// 🔴 ຂຽນຕໍ່: ສະແດງຟອມຂໍສິດ (ຊ່ອງພິມຫ້ອງ + ປຸ່ມສົ່ງ → submitAccessRequest(room))
-function showRequestAccessForm() {
-  console.log('ຕ້ອງສະແດງຟອມຂໍສິດ ໃນໜ້າ login.html');
-}
-
 // ============================================
 // ໂຫລດ Google Sign-In ທັນທີທີ່ພ້ອມ (ບໍ່ລໍໄຟລ໌ໜັກອື່ນ)
 // ============================================
