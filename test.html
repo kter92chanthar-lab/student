@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ທົດສອບລະບົບ</title>
+<style>
+  body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 10px; }
+  input, button { width: 100%; padding: 10px; margin: 6px 0; font-size: 16px; box-sizing: border-box; }
+  button { background: #2563eb; color: white; border: none; border-radius: 6px; }
+  pre { background: #f1f5f9; padding: 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-word; }
+</style>
+</head>
+<body>
+  <h2>🧪 ທົດສອບ Apps Script</h2>
+
+  <label>ລິ້ງ Apps Script (.../exec)</label>
+  <input id="url" value="https://script.google.com/macros/s/AKfycbx10wFqFdxjoF0ytC8OpaeCI4cFx_viL0BGzwrUeP8F_9HOaOWtMC-AuIdb4geNxNS7Ww/exec">
+
+  <label>Email ທົດສອບ</label>
+  <input id="email" value="kter92chanthar@gmail.com">
+
+  <button onclick="testLogin()">1. ທົດສອບ Login</button>
+  <button onclick="testMonths()">2. ທົດສອບ getMonths (ຫ້ອງ ມ.4)</button>
+  <button onclick="testScores()">3. ທົດສອບ getScores (ຫ້ອງ ມ.4, M9)</button>
+
+  <h3>ຜົນລັບ:</h3>
+  <pre id="result">ຍັງບໍ່ໄດ້ທົດສອບ</pre>
+
+<script>
+async function callAPI(action, extra) {
+  const url = document.getElementById('url').value;
+  const email = document.getElementById('email').value;
+  document.getElementById('result').textContent = 'ກຳລັງໂຫລດ...';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action, email, ...extra })
+    });
+    const data = await res.json();
+    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    document.getElementById('result').textContent = '❌ ຂໍ້ຜິດພາດ: ' + err.message;
+  }
+}
+
+function testLogin() { callAPI('login', {}); }
+function testMonths() { callAPI('getMonths', { room: 'ມ.4' }); }
+function testScores() { callAPI('getScores', { room: 'ມ.4', sheet: 'M9' }); }
+</script>
+</body>
+</html>
