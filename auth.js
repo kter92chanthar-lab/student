@@ -81,3 +81,15 @@ function onLoginSuccess(access) {
 function showRequestAccessForm() {
   console.log('ຕ້ອງສະແດງຟອມຂໍສິດ ໃນໜ້າ login.html');
 }
+
+// ============================================
+// ໂຫລດ Google Sign-In ທັນທີທີ່ພ້ອມ (ບໍ່ລໍໄຟລ໌ໜັກອື່ນ)
+// ============================================
+(function waitForGoogleAndInit() {
+  const btn = document.getElementById('google-login-btn');
+  if (window.google && window.google.accounts && window.google.accounts.id && btn) {
+    initGoogleLogin('google-login-btn');
+  } else {
+    setTimeout(waitForGoogleAndInit, 150);
+  }
+})();
