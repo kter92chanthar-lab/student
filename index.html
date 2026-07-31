@@ -258,6 +258,47 @@
     font-weight: 700;
   }
 
+  .info-list {
+    margin-bottom: 16px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+
+  .info-row span {
+    color: #8a8175;
+  }
+
+  .info-row b {
+    color: var(--ink, #3a3226);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Noto Serif Lao', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--clay);
+    margin: 18px 0 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  .dl-btn.small {
+    padding: 3px 9px;
+    font-size: 12px;
+  }
+
   .report-info {
     margin-bottom: 10px;
     font-size: 12px;
@@ -568,12 +609,16 @@ function buildStudentsFromRows(rows) {
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r[0]) continue;
+    // ຄໍລໍາຈິງໃນ Sheet (Tab M9): A=ລ/ດ, B=ຊື່ແລະນາມສະກຸນ(ມີຄຳນຳໜ້າ ບ./ທ.), C=ເພດ, D=ເຜົ່າ, E=ຊັ້ນຮຽນ
+    const rawName = (r[1] || '').replace(/^(ບ\.|ທ\.)\s*/, '').trim();
+    const nameParts = rawName.split(/\s+/).filter(Boolean);
     newStudents.push({
-      firstName: r[1] || '',
-      lastName: r[2] || '',
-      gender: r[3] || '',
-      id: r[4] || '',
-      room: r[5] || '',
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      gender: r[2] || '',
+      ethnicity: r[3] || '',
+      room: r[4] || '',
+      id: r[5] || '',
       dob: r[6] || '',
       father: r[7] || '',
       mother: r[8] || '',
@@ -682,22 +727,39 @@ function renderRooms() {
 async function showDetail(idx) {
   const s = students[idx];
   const overlay = document.getElementById('detailOverlay');
+  const prefix = s.gender.includes('ຊາຍ') ? 'ທ້າວ' : 'ນາງ';
   overlay.innerHTML = `
     <div class="detail-overlay" onclick="if(event.target===this) closeDetail()">
       <div class="detail-card" id="reportCardContent">
         <div class="detail-header">
-          <div class="detail-name">📊 ປຶ້ມຕິດຕາມນັກຮຽນ</div>
+          <div class="detail-name">👤 ${prefix} ${s.firstName} ${s.lastName}</div>
           <button class="close-btn" onclick="closeDetail()">✕</button>
         </div>
-        
+
+        <div class="info-list">
+          <div class="info-row"><span>ລະຫັດ</span><b>${s.id || '-'}</b></div>
+          <div class="info-row"><span>ຫ້ອງ</span><b>${s.room || '-'}</b></div>
+          <div class="info-row"><span>ເພດ</span><b>${s.gender || '-'}</b></div>
+          <div class="info-row"><span>ວັນເກີດ</span><b>${s.dob || '-'}</b></div>
+          <div class="info-row"><span>ພໍ່</span><b>${s.father || '-'}</b></div>
+          <div class="info-row"><span>ແມ່</span><b>${s.mother || '-'}</b></div>
+          <div class="info-row"><span>ເບີໂທ</span><b>${s.phone || '-'}</b></div>
+          <div class="info-row"><span>ທີ່ຢູ່</span><b>${s.address || '-'}</b></div>
+        </div>
+
         <div class="btn-group">
           <button class="dl-btn" onclick="downloadExcel(${idx})">⬇ Excel</button>
           <button class="dl-btn" onclick="downloadPDF('${s.firstName}_${s.lastName}')">⬇ PDF</button>
           ${canEditRoom(s.room) ? `<button class="dl-btn" style="background:#16a34a;" onclick="window.open('https://docs.google.com/spreadsheets/d/${getScoreSheetId(s.room)}/edit', '_blank')">✏️ ແກ້ໄຂຄະແນນ</button>` : ''}
         </div>
 
+        <div class="section-title">
+          📊 ປຶ້ມຕິດຕາມ
+          <button class="dl-btn small" onclick="fetchStudentScores(students[${idx}])" title="ດຶງຂໍ້ມູນຄະແນນ">🔄</button>
+        </div>
+
         <div class="report-info">
-          <div><b>ຊື່ ແລະ ນາມສະກຸນ:</b> ${s.firstName} ${s.lastName}</div>
+          <div><b>ຊື່ ແລະ ນາມສະກຸນ:</b> ${prefix} ${s.firstName} ${s.lastName}</div>
           <div><b>ເພດ:</b> ${s.gender}</div>
           <div><b>ຊັ້ນຮຽນ:</b> ${s.room}</div>
         </div>
@@ -710,16 +772,16 @@ async function showDetail(idx) {
           <table class="report-table" id="scoreTable">
             <thead>
               <tr>
-                <th>ວິຊາ</th>
-                <th>M9</th><th>M10</th><th>M11</th><th>M12</th>
-                <th>Avg I</th><th>Sem I</th><th>Final I</th>
-                <th>M2</th><th>M3</th><th>M4</th><th>M5</th>
-                <th>Avg II</th><th>Sem II</th><th>Final II</th>
-                <th>Year</th>
+                <th>ກຸ່ມວິຊາ</th><th>ວິຊາຮຽນ</th><th>ເດືອນ</th>
+                <th>09</th><th>10</th><th>11</th><th>12</th>
+                <th>Avg I</th><th>Exam I</th><th>Tot I</th>
+                <th>02</th><th>03</th><th>04</th><th>05</th>
+                <th>Avg II</th><th>Exam II</th><th>Tot II</th>
+                <th>Year</th><th>Fix</th><th>Note</th>
               </tr>
             </thead>
             <tbody id="scoreBody">
-              <tr><td colspan="16">ກຳລັງໂຫຼດຄະແນນ...</td></tr>
+              <tr><td colspan="19">ກຳລັງໂຫຼດຄະແນນ...</td></tr>
             </tbody>
           </table>
         </div>
@@ -765,7 +827,7 @@ async function fetchStudentScores(s) {
           if (!subject) continue;
           
           if (!scoresBySubject[subject]) {
-            scoresBySubject[subject] = {};
+            scoresBySubject[subject] = { __group: '' };
           }
           // ຖ້າ rowIdx ມີຄ່າ ໃຊ້ຄ່ານັ້ນ, ຖ້າບໍ່ມີ ໃຊ້ຄ່າຈາກ Tab M9
           scoresBySubject[subject][tab] = row[s.rowIdx] || '';
@@ -775,12 +837,20 @@ async function fetchStudentScores(s) {
       }
     }
     
-    // ສ້າງຕາຕະລາງ
-    bodyEl.innerHTML = Object.keys(scoresBySubject).map(subject => {
+    // ສ້າງຕາຕະລາງ (ກຸ່ມວິຊາ | ວິຊາຮຽນ | ເດືອນ | 09..12 | Avg I | Exam I | Tot I | 02..05 | Avg II | Exam II | Tot II | Year | Fix | Note)
+    const subjectKeys = Object.keys(scoresBySubject);
+    if (subjectKeys.length === 0) {
+      bodyEl.innerHTML = '<tr><td colspan="19">ບໍ່ພົບຂໍ້ມູນຄະແນນ</td></tr>';
+      return;
+    }
+    bodyEl.innerHTML = subjectKeys.map(subject => {
       const scores = scoresBySubject[subject];
+      const group = scores.__group || '';
       return `
         <tr>
+          <td style="text-align:left; font-weight:600;">${group}</td>
           <td style="text-align:left; font-weight:600;">${subject}</td>
+          <td></td>
           <td>${scores['M9'] || ''}</td>
           <td>${scores['M10'] || ''}</td>
           <td>${scores['M11'] || ''}</td>
@@ -796,13 +866,15 @@ async function fetchStudentScores(s) {
           <td>${scores['SEMESTER II'] || ''}</td>
           <td style="background:#eee;"><b>${scores['FINAL SEMESTER II'] || ''}</b></td>
           <td style="background:#C9A24B; color:white; font-weight:700;">${scores['ALL YEARS 2025-2026'] || ''}</td>
+          <td></td>
+          <td></td>
         </tr>
       `;
     }).join('');
     
   } catch(e) {
     console.error('Fetch scores failed', e);
-    document.getElementById('scoreBody').innerHTML = '<tr><td colspan="16">ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຄະແນນ</td></tr>';
+    document.getElementById('scoreBody').innerHTML = '<tr><td colspan="19">ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຄະແນນ</td></tr>';
   }
 }
 
