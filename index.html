@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ຄົ້ນຫາຂໍ້ມູນນັກຮຽນ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700&family=Noto+Serif+Lao:wght@600;700&display=swap');
+
+  :root {
+    --cream: #FAF6EC;
+    --ink: #2A2420;
+    --clay: #B8603F;
+    --teal: #2E5E5A;
+    --line: #D8CEBB;
+    --gold: #C9A24B;
+    --boy: #3B6FA0;
+    --girl: #B8567A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Noto Sans Lao', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    padding: 20px 0 22px;
+    border-bottom: 3px double var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .eyebrow {
+    letter-spacing: 0.15em;
+    font-size: 12px;
+    color: var(--teal);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: 'Noto Serif Lao', serif;
+    font-size: 26px;
+    margin: 6px 0 4px;
+    color: var(--clay);
+  }
+
+  .sub { font-size: 13px; color: #6b6259; }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    background: #F0EBDD;
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 9px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #8a8175;
+  }
+  .tab.active { background: white; color: var(--clay); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  .search-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    background: white;
+    color: var(--ink);
+    outline: none;
+  }
+  input:focus { border-color: var(--clay); }
+  input::placeholder { font-size: 13px; }
+
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    padding: 12px 14px;
+    background: #F0EBDD;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .stat-item { display: flex; align-items: center; gap: 5px; color: #6b6259; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.total { background: var(--gold); }
+  .stat-num { font-weight: 700; color: var(--ink); }
+
+  .card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+
+  .gender-badge {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: white;
+    flex-shrink: 0;
+  }
+  .gender-badge.boy { background: var(--boy); }
+  .gender-badge.girl { background: var(--girl); }
+
+  .card-name {
+    font-family: 'Noto Serif Lao', serif;
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .card-meta { font-size: 12px; color: #8a8175; margin-top: 2px; }
+
+  .room-card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .room-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+
+  .room-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .room-name {
+    font-family: 'Noto Serif Lao', serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--clay);
+  }
+
+  .dl-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #EDF3EE;
+    color: var(--teal);
+    border: 1px solid #C9DCC9;
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .dl-btn.small { padding: 5px 9px; font-size: 11px; }
+
+  .detail-overlay {
+    position: fixed; inset: 0;
+    background: rgba(42,36,32,0.45);
+    display: flex; align-items: flex-end;
+    z-index: 10;
+  }
+  @media (min-width: 640px) {
+    .detail-overlay { align-items: center; justify-content: center; }
+  }
+
+  .detail-card {
+    background: var(--cream);
+    width: 100%;
+    max-width: 800px;
+    max-height: 95vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    padding: 24px;
+  }
+  @media (min-width: 640px) {
+    .detail-card { border-radius: 16px; }
+  }
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+  }
+
+  .detail-name {
+    font-family: 'Noto Serif Lao', serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--clay);
+  }
+
+  .close-btn {
+    background: none; border: none; font-size: 22px;
+    color: #8a8175; cursor: pointer; padding: 0 4px;
+    line-height: 1;
+  }
+
+  .report-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    padding: 15px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .report-table th, .report-table td {
+    border: 1px solid #000;
+    padding: 3px 5px;
+    text-align: center;
+  }
+
+  .report-table th {
+    background: #f2f2f2;
+    font-weight: 700;
+  }
+
+  .report-info {
+    margin-bottom: 10px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .gear-btn {
+    position: absolute;
+    right: 0;
+    top: 4px;
+    background: white;
+    border: 1px solid var(--line);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .settings-card {
+    background: var(--cream);
+    width: 100%;
+    max-width: 440px;
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .settings-label {
+    font-size: 13px;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .settings-help {
+    font-size: 11.5px;
+    color: #8a8175;
+    line-height: 1.6;
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--clay);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .status-msg {
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 10px;
+    color: var(--teal);
+    min-height: 16px;
+  }
+
+  .test-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #EDF3EE;
+    color: var(--teal);
+    border: 1px solid #C9DCC9;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .auto-refresh-group {
+    margin-top: 12px;
+    padding: 12px;
+    background: #F0EBDD;
+    border-radius: 8px;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a8175;
+    font-size: 14px;
+  }
+
+  .info-box {
+    margin-top: 26px;
+    padding: 14px 16px;
+    background: #F0EBDD;
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    font-size: 12px;
+    color: #6b6259;
+    line-height: 1.7;
+  }
+
+  .score-sheet-row {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #F7F3E8;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .score-sheet-row-top {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+  .score-sheet-row-top input { flex: 1; }
+  .student-info-panel { margin: 0 0 12px; background: white; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .student-info-title { font-family: 'Noto Serif Lao', serif; font-weight: 700; color: var(--clay); margin-bottom: 8px; font-size: 14px; }
+  .student-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+  .student-info-item { padding: 6px 0; border-bottom: 1px dashed #ddd; font-size: 12px; }
+  .student-info-item b { color: var(--teal); }
+  .subject-map-box { margin-top: 14px; padding: 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+  .subject-map-row { display: grid; grid-template-columns: 55px 1fr; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .subject-map-row:last-child { margin-bottom: 0; }
+  .subject-map-code { font-weight: 700; color: var(--teal); }
+  .settings-note { font-size: 11px; color: #777; line-height: 1.6; margin: 6px 0 12px; }
+  @media (max-width: 520px) { .student-info-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="loginGate" style="max-width:450px; margin:80px auto; padding:0;">
+  <div style="background:linear-gradient(135deg, #2E5E5A 0%, #B8603F 100%); padding:40px 30px; border-radius:16px 16px 0 0; text-align:center; color:white;">
+    <div style="font-size:48px; margin-bottom:12px;">🎓</div>
+    <h2 style="margin:0; font-size:26px; font-weight:700; font-family:'Noto Serif Lao', serif;">ລະບົບຂໍ້ມູນນັກຮຽນ</h2>
+    <p style="margin:8px 0 0; font-size:13px; opacity:0.9;">ຂໍ້ມູນນັກຮຽນ ແລະ ຄະແນນ</p>
+  </div>
+  
+  <div id="loginStep" style="background:white; padding:30px; border-radius:0 0 16px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+    <p style="text-align:center; color:#666; margin:0 0 20px; font-size:15px;">ກະລຸນາ Login ດ້ວຍ Google</p>
+    <div id="google-login-btn" style="display:flex; justify-content:center; margin:20px 0; min-height: 40px;"></div>
+    <div id="debug-error" style="display:none; margin-top:15px; padding:10px; background:#fff5f5; border:1px solid #feb2b2; border-radius:8px; color:#c53030; font-size:12px; text-align:left;"></div>
+  </div>
+  
+  <div id="requestStep" style="display:none; background:white; padding:30px; border-radius:0 0 16px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+    <p style="margin:0 0 16px; font-weight:600; color:#2A2420;">📝 ຍັງບໍ່ເຄີຍລົງທະບຽນ — ຂໍສິດເຂົ້າລະບົບ</p>
+    <p style="margin:0 0 12px; font-size:13px; color:#666;">ກະລຸນາລະບຸຫ້ອງຮຽນຂອງທ່ານ:</p>
+    <input id="roomReqInput" placeholder="ຫ້ອງ (ເຊັ່ນ ມ.4)" style="width:100%; padding:12px 14px; margin:6px 0 16px; box-sizing:border-box; border:2px solid #D8CEBB; border-radius:8px; font-family:inherit; font-size:14px;">
+    <button onclick="doAccessRequest()" style="width:100%; padding:12px; background:#2E5E5A; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px; transition:background 0.3s;">ສົ່ງຄຳຂໍ</button>
+    <p style="margin:12px 0 0; font-size:12px; color:#999; text-align:center;">ຄຳຂໍຂອງທ່ານຈະຖືກສົ່ງໄປຫາ Admin ເພື່ອກວດສອບ</p>
+  </div>
+  
+  <div id="pendingStep" style="display:none; background:white; padding:30px; border-radius:0 0 16px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.1); text-align:center;">
+    <div style="font-size:48px; margin-bottom:16px; animation:pulse 2s infinite;">⏳</div>
+    <p style="margin:0 0 8px; font-weight:600; color:#2A2420; font-size:16px;">ລໍຖ້າການອະນຸມັດ</p>
+    <p style="margin:0; font-size:13px; color:#666; line-height:1.6;">ບັນຊີຂອງທ່ານກຳລັງລໍຖ້າ Admin ອະນຸມັດ<br>ລະບົບຈະກວດສອບໂດຍອັດຕະໂນມັດທຸກ 3 ວິນາທີ</p>
+    <div style="margin-top:20px; padding:12px; background:#F0EBDD; border-radius:8px; font-size:12px; color:#6b6259;">
+      <p style="margin:0;">💡 ກະລຸນາລໍຖ້າ... ບໍ່ຕ້ອງ Refresh ໜ້າ</p>
+    </div>
+  </div>
+  
+  <style>
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    #requestStep button:hover { background:#1f4a47; }
+  </style>
+</div>
+
+<div class="wrap" id="mainApp" style="display:none;">
+  <header>
+    <div class="header-row">
+      <div style="position:relative; width:100%;">
+        <div class="eyebrow">ລະບົບຂໍ້ມູນນັກຮຽນ</div>
+        <h1>ຄົ້ນຫານັກຮຽນ</h1>
+        <div class="sub" id="dataSourceText">ກຳລັງໃຊ້ຂໍ້ມູນຕົວຢ່າງ</div>
+        <button class="gear-btn" id="gearBtn" onclick="openSettings()" title="ຕັ້ງຄ່າ">⚙️</button>
+        <div id="userBadge" style="font-size:11px; color:#888; margin-top:4px;"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tabSearch" onclick="switchTab('search')">🔍 ຄົ້ນຫາ</div>
+    <div class="tab" id="tabRooms" onclick="switchTab('rooms')">🏫 ຫ້ອງຮຽນ</div>
+  </div>
+
+  <div id="searchPanel">
+    <div class="search-grid">
+      <input type="text" id="nameInput" placeholder="ຄົ້ນຫາຕາມຊື່..." oninput="renderSearch()">
+      <input type="text" id="idInput" placeholder="ຄົ້ນຫາຕາມລະຫັດ..." oninput="renderSearch()">
+    </div>
+    <input type="text" id="parentInput" placeholder="ຄົ້ນຫາຕາມຊື່ພໍ່ ຫຼື ແມ່..." oninput="renderSearch()" style="margin-bottom:14px;">
+    
+    <div class="stats-bar" id="searchStats">
+      <div class="stat-item"><span class="dot total"></span>ຫ້ອງ <span class="stat-num" id="roomCountSearch">0</span></div>
+      <div class="stat-item"><span class="dot total"></span>ນັກຮຽນ <span class="stat-num" id="studentCountSearch">0</span></div>
+    </div>
+
+    <div id="searchList"></div>
+  </div>
+
+  <div id="roomsPanel" style="display:none;">
+    <div id="roomsList"></div>
+  </div>
+
+  <div class="info-box">
+    ຂໍ້ມູນນັກຮຽນ (Excel/Google Sheet) ແລະ ຄະແນນປະຈຳເດືອນ (Google Sheet) — ຕັ້ງຄ່າທັງໝົດຢູ່ໃນ <b>⚙️</b> ດ້ານເທິງ
+  </div>
+</div>
+
+<div id="settingsOverlay"></div>
+<div id="detailOverlay"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx10wFqFdxjoF0ytC8OpaeCI4cFx_viL0BGzwrUeP8F_9HOaOWtMC-AuIdb4geNxNS7Ww/exec';
+const GOOGLE_CLIENT_ID = '842445966044-uqi522iqaqmfbc2jg4ks9k9gj9dhj3rp.apps.googleusercontent.com';
+
+let students = [];
+let currentTab = 'search';
+const DEFAULT_SUBJECT_CODE_MAP = { S1:'ພາສາລາວ+ວັນນະຄະດີ', S2:'ຄະນິດສາດ', S3:'ວິທະຍາສາດທຳມະຊາດ', S4:'ສຶກສາພົນລະເມືອງ', S5:'', S6:'', S7:'', S8:'', S9:'', S10:'', S11:'' };
+let sheetConfig = { rosterSheetId: '', scoreSheetsByRoom: {}, subjectMap: { ...DEFAULT_SUBJECT_CODE_MAP } };
+let settingsConfig = { approvedEmail: '', autoRefreshEnabled: false, autoRefreshInterval: 30 };
+let tempScoreSheets = [];
+let currentAccess = null;
+let currentUser = null;
+let pollingInterval = null;
+
+async function init() {
+  await loadConfig();
+  if (sheetConfig.rosterSheetId) {
+    await fetchRosterFromSheet(sheetConfig.rosterSheetId);
+  }
+  applyRoleRestrictions();
+  renderSearch();
+}
+
+function onLoginSuccessFromAuth(access) {
+  currentAccess = access;
+  const userBadge = document.getElementById('userBadge');
+  if (userBadge) {
+    userBadge.textContent = `👤 ${access.role}${access.room ? ' | ຫ້ອງ ' + access.room : ''}`;
+  }
+  init();
+}
+
+function applyRoleRestrictions() {
+  if (!currentAccess) return;
+  const gearBtn = document.getElementById('gearBtn');
+  if (gearBtn) {
+    const isAdmin = currentAccess.role && currentAccess.role.toLowerCase() === 'admin';
+    gearBtn.style.display = isAdmin ? 'block' : 'none';
+  }
+  if (currentAccess.role && currentAccess.role.toLowerCase() === 'student' && currentAccess.room) {
+    students = students.filter(s => s.room === currentAccess.room);
+  }
+}
+
+function canEditRoom(room) {
+  if (!currentAccess) return false;
+  const role = (currentAccess.role || '').toLowerCase();
+  if (role === 'admin') return true;
+  if (role === 'teacher' && currentAccess.room && room && currentAccess.room.trim() === room.trim()) return true;
+  return false;
+}
+
+async function loadConfig() {
+  try {
+    const s1 = localStorage.getItem('sheetConfig');
+    if (s1) sheetConfig = { ...sheetConfig, ...JSON.parse(s1) };
+    const s2 = localStorage.getItem('settingsConfig');
+    if (s2) settingsConfig = { ...settingsConfig, ...JSON.parse(s2) };
+  } catch(e) {}
+  if (!sheetConfig.scoreSheetsByRoom) sheetConfig.scoreSheetsByRoom = {};
+  sheetConfig.subjectMap = { ...DEFAULT_SUBJECT_CODE_MAP, ...(sheetConfig.subjectMap || {}) };
+}
+
+async function fetchRosterFromSheet(rosterId) {
+  try {
+    const tabs = ['', 'M9', 'INFO', 'Roster', 'Sheet1'];
+    let text = '';
+    for (const tab of tabs) {
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${rosterId}/gviz/tq?tqx=out:csv${tab ? '&sheet=' + encodeURIComponent(tab) : ''}`;
+        const resp = await fetch(url);
+        const candidate = await resp.text();
+        if (resp.ok && candidate && !candidate.includes('<!DOCTYPE html>') && candidate.trim().length > 20) { text = candidate; break; }
+      } catch(e) {}
+    }
+    if (!text) throw new Error('ROSTER_SHEET_EMPTY');
+    const parsed = Papa.parse(text.trim(), { skipEmptyLines: true });
+    const result = buildStudentsFromRows(parsed.data);
+    if (result.students) {
+      students = result.students;
+      document.getElementById('dataSourceText').textContent = `ໃຊ້ຂໍ້ມູນຈາກ Google Sheet (${students.length} ຄົນ)`;
+      renderSearch();
+    }
+  } catch(e) {
+    const el = document.getElementById('dataSourceText');
+    if (el) el.textContent = 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນນັກຮຽນຈາກ Google Sheet';
+    console.warn('fetchRosterFromSheet:', e);
+  }
+}
+
+function normHeader(v) { return (v || '').toString().toLowerCase().replace(/[\s_\-:()\[\]{}]+/g, '').trim(); }
+
+function findHeaderRow(rows) {
+  const aliases = ['childenname','childrenname','studentname','fullname','ຊື່ແລະນາມສະກຸນ','ຊື່','ນາມສະກຸນ','studentid','ລະຫັດນັກຮຽນ','ເລກທີ','ລຳດັບ'];
+  let best = 0, bestScore = -1;
+  for (let i = 0; i < Math.min(rows.length, 25); i++) {
+    const joined = (rows[i] || []).map(normHeader).join('|');
+    let score = aliases.reduce((n,a) => n + (joined.includes(normHeader(a)) ? 1 : 0), 0);
+    if (score > bestScore) { bestScore = score; best = i; }
+  }
+  return best;
+}
+
+function findCol(headers, aliases) {
+  const hs = headers.map(normHeader);
+  for (const alias of aliases) {
+    const a = normHeader(alias);
+    const idx = hs.findIndex(h => h === a || h.includes(a) || a.includes(h));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function buildStudentsFromRows(rows) {
+  if (!rows || rows.length < 1) return { error: 'ບໍ່ພົບຂໍ້ມູນ' };
+  const headerIdx = findHeaderRow(rows);
+  const headers = rows[headerIdx] || [];
+  let extractedHeaderRoom = '';
+  for (let i = 0; i < Math.min(rows.length, 8); i++) {
+    const rowStr = (rows[i] || []).join(' ');
+    const match = rowStr.match(/ຊັ້ນຮຽນ\s*:\s*([^\s,]+)/i) || rowStr.match(/(ມ\.\s*\d+(\/\d+)?)/i);
+    if (match) { extractedHeaderRoom = (match[1] || match[2]).trim(); break; }
+  }
+  const fallbackRoom = extractedHeaderRoom || Object.keys(sheetConfig.scoreSheetsByRoom)[0] || 'ມ.4';
+  const idx = {
+    firstName: findCol(headers, ['CHILDEN NAME','CHILDREN NAME','STUDENT NAME','FULL NAME','ຊື່']),
+    lastName: findCol(headers, ['LAST NAME','SURNAME','ນາມສະກຸນ']),
+    gender: findCol(headers, ['GD','GENDER','ເພດ']),
+    id: findCol(headers, ['STUDENT ID','ID','ລະຫັດນັກຮຽນ','ລະຫັດ']),
+    room: findCol(headers, ['SCHOOL NAME','ROOM','CLASS','ຊັ້ນຮຽນ','ຫ້ອງ']),
+    dob: findCol(headers, ['DOB','DATE OF BIRTH','ວັນເກີດ']),
+    father: findCol(headers, ['FATHER','ພໍ່','ຊື່ພໍ່']),
+    mother: findCol(headers, ['MOTHER','ແມ່','ຊື່ແມ່']),
+    phone: findCol(headers, ['STUDENT PHONE','PHONE','TEL','ເບີໂທ','ໂທລະສັບ']),
+    address: findCol(headers, ['ADDRESS','ທີ່ຢູ່'])
+  };
+  if (idx.firstName < 0) idx.firstName = 1;
+  if (idx.lastName < 0) idx.lastName = 2;
+  if (idx.gender < 0) idx.gender = 3;
+  if (idx.id < 0) idx.id = 4;
+  if (idx.room < 0) idx.room = 5;
+  if (idx.dob < 0) idx.dob = 6;
+  if (idx.father < 0) idx.father = 7;
+  if (idx.mother < 0) idx.mother = 8;
+  if (idx.phone < 0) idx.phone = 9;
+  if (idx.address < 0) idx.address = 10;
+
+  const newStudents = [];
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const r = rows[i] || [];
+    const get = k => idx[k] >= 0 ? String(r[idx[k]] ?? '').trim() : '';
+    const firstName = get('firstName'), lastName = get('lastName'), id = get('id');
+    if (!firstName && !lastName && !id) continue;
+    if (/^(ຊື່|ນາມສະກຸນ|CHILDEN NAME|CHILDREN NAME|STUDENT NAME)$/i.test(firstName)) continue;
+    const fields = [];
+    headers.forEach((h,c) => { const label=String(h||'').trim(), value=String(r[c]??'').trim(); if(label && value) fields.push({label,value}); });
+    newStudents.push({ firstName, lastName, gender:get('gender'), id, room:get('room')||fallbackRoom, dob:get('dob'), father:get('father'), mother:get('mother'), phone:get('phone'), address:get('address'), rowIdx:i, fields });
+  }
+  return { students: newStudents };
+}
+
+function getScoreSheetId(room) {
+  const map = sheetConfig.scoreSheetsByRoom || {};
+  if (room && map[room]) return map[room];
+  if (room) {
+    let bestKey = null;
+    Object.keys(map).forEach(key => {
+      if (key && (room.startsWith(key) || key.startsWith(room))) {
+        if (!bestKey || key.length > bestKey.length) bestKey = key;
+      }
+    });
+    if (bestKey) return map[bestKey];
+  }
+  return '';
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabSearch').classList.toggle('active', tab === 'search');
+  document.getElementById('tabRooms').classList.toggle('active', tab === 'rooms');
+  document.getElementById('searchPanel').style.display = tab === 'search' ? 'block' : 'none';
+  document.getElementById('roomsPanel').style.display = tab === 'rooms' ? 'block' : 'none';
+  if (tab === 'rooms') renderRooms();
+}
+
+function formatStudentName(s) {
+  if (!s) return '';
+  const firstName = (s.firstName || '').trim();
+  const lastName = (s.lastName || '').trim();
+  const isBoy = s.gender ? s.gender.includes('ຊາຍ') : false;
+  const prefixRegex = /^(ທ້າວ|ນາງ|ນ\.|ທ\.|ດ\.ຊ\.|ດ\.ຍ\.|ນ\s|ທ\s|ດຊ|ດຍ)/i;
+  let formattedFirstName = firstName;
+  if (!prefixRegex.test(firstName)) {
+    const prefix = isBoy ? 'ທ້າວ' : 'ນາງ';
+    formattedFirstName = `${prefix} ${firstName}`;
+  }
+  return (formattedFirstName + ' ' + lastName).trim();
+}
+
+function renderSearch() {
+  const nQ = document.getElementById('nameInput').value.toLowerCase().trim();
+  const idQ = document.getElementById('idInput').value.toLowerCase().trim();
+  const pQ = document.getElementById('parentInput').value.toLowerCase().trim();
+  const listEl = document.getElementById('searchList');
+  if (!nQ && !idQ && !pQ) {
+    document.getElementById('roomCountSearch').textContent = '0';
+    document.getElementById('studentCountSearch').textContent = '0';
+    listEl.innerHTML = '<div class="empty">🔍 ກະລຸນາພິມຄຳຄົ້ນຫາ (ຊື່, ລະຫັດ, ຫຼື ຊື່ຜູ້ປົກຄອງ) ເພື່ອສະແດງຂໍ້ມູນ</div>';
+    return;
+  }
+  const filtered = students.filter(s => 
+    (s.firstName + ' ' + s.lastName).toLowerCase().includes(nQ) &&
+    (s.id||'').toLowerCase().includes(idQ) &&
+    ((s.father||'') + ' ' + (s.mother||'')).toLowerCase().includes(pQ)
+  );
+  document.getElementById('roomCountSearch').textContent = new Set(filtered.map(s => s.room)).size;
+  document.getElementById('studentCountSearch').textContent = filtered.length;
+  if (filtered.length === 0) { listEl.innerHTML = '<div class="empty">ບໍ່ພົບຂໍ້ມູນ</div>'; return; }
+  listEl.innerHTML = filtered.map((s, idx) => `
+    <div class="card" onclick="showDetail(${students.indexOf(s)})">
+      <div class="gender-badge ${s.gender && s.gender.includes('ຊາຍ') ? 'boy' : 'girl'}">${s.gender && s.gender.includes('ຊາຍ') ? '♂' : '♀'}</div>
+      <div>
+        <div class="card-name">${formatStudentName(s)}</div>
+        <div class="card-meta">${s.room || '-'} · ${s.id || '-'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRooms() {
+  const rooms = {};
+  students.forEach(s => {
+    const r = s.room || 'ບໍ່ລະບຸຫ້ອງ';
+    if (!rooms[r]) rooms[r] = { total: 0 };
+    rooms[r].total++;
+  });
+  const listEl = document.getElementById('roomsList');
+  listEl.innerHTML = Object.keys(rooms).sort().map(r => `
+    <div class="room-card" onclick="showRoomScores('${r}')">
+      <div class="room-top">
+        <div class="room-name">ຫ້ອງ ${r}</div>
+        <button class="dl-btn small">📊 ເບິ່ງຄະແນນຫ້ອງ</button>
+      </div>
+      <div class="room-stats">
+        <div class="stat-item"><span class="dot total"></span>ທັງໝົດ <span class="stat-num">${rooms[r].total}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function showRoomScores(room) {
+  const scoreSheetId = getScoreSheetId(room);
+  const overlay = document.getElementById('detailOverlay');
+  if (!scoreSheetId) {
+    alert('ຍັງບໍ່ໄດ້ຕັ້ງຄ່າລິ້ງຄະແນນສຳລັບຫ້ອງນີ້');
+    return;
+  }
+  
+  // To skip the first sheet, we need to fetch all sheet titles and GIDs
+  const metaUrl = `https://docs.google.com/spreadsheets/d/${scoreSheetId}/gviz/tq?tqx=out:json`;
+  let tabsHtml = '';
+  try {
+    const resp = await fetch(metaUrl);
+    const text = await resp.text();
+    const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/)[1];
+    const data = JSON.parse(jsonStr);
+    // Note: The visualization API doesn't always give sheet names easily. 
+    // Fallback to a simpler iframe approach if this fails.
+  } catch(e) {}
+
+  // Beautiful Iframe Version (Skipping first sheet by targeting the second one by default if possible)
+  overlay.innerHTML = `
+    <div class="detail-overlay" onclick="if(event.target===this) closeDetail()">
+      <div class="detail-card" style="max-width:98vw; width:1200px; height:90vh; padding:10px; display:flex; flex-direction:column;">
+        <div class="detail-header" style="margin-bottom:8px;">
+          <div class="detail-name">📊 ຄະແນນລວມຫ້ອງ ${room}</div>
+          <div style="display:flex; gap:8px;">
+            ${canEditRoom(room) ? `<button class="dl-btn" style="background:#16a34a; color:white;" onclick="window.open('https://docs.google.com/spreadsheets/d/${scoreSheetId}/edit', '_blank')">✏️ ແກ້ໄຂ</button>` : ''}
+            <button class="close-btn" onclick="closeDetail()">✕</button>
+          </div>
+        </div>
+        <iframe src="https://docs.google.com/spreadsheets/d/${scoreSheetId}/htmlview?widget=true&headers=false" style="flex:1; border:1px solid #ddd; border-radius:8px;"></iframe>
+        <div style="font-size:11px; color:#888; margin-top:5px; text-align:center;">ໝາຍເຫດ: ກະລຸນາເລືອກ Tab ເດືອນ (M9, M10...) ດ້ານລຸ່ມຂອງຕາຕະລາງ</div>
+      </div>
+    </div>
+  `;
+}
+
+async function showDetail(idx) {
+  const s = students[idx];
+  const overlay = document.getElementById('detailOverlay');
+  overlay.innerHTML = `
+    <div class="detail-overlay" onclick="if(event.target===this) closeDetail()">
+      <div class="detail-card" id="reportCardContent">
+        <div class="detail-header">
+          <div class="detail-name">📊 ປຶ້ມຕິດຕາມນັກຮຽນ</div>
+          <button class="close-btn" onclick="closeDetail()">✕</button>
+        </div>
+        <div class="btn-group">
+          <button class="dl-btn" onclick="downloadExcel(${idx})">⬇ Excel</button>
+          <button class="dl-btn" onclick="downloadPDF('${s.firstName}_${s.lastName}')">⬇ PDF</button>
+        </div>
+        <div class="report-info">
+          <div><b>ຊື່ ແລະ ນາມສະກຸນ:</b> ${formatStudentName(s)}</div>
+          <div><b>ເພດ:</b> ${s.gender}</div>
+          <div><b>ຊັ້ນຮຽນ:</b> ${s.room}</div>
+        </div>
+        <div class="student-info-panel">
+          <div class="student-info-title">👤 ຂໍ້ມູນນັກຮຽນ</div>
+          <div class="student-info-grid">
+            ${(s.fields && s.fields.length ? s.fields : [
+              {label:'ຊື່',value:formatStudentName(s)}, {label:'ເພດ',value:s.gender}, {label:'ຫ້ອງ',value:s.room},
+              {label:'ລະຫັດ',value:s.id}, {label:'ເບີໂທ',value:s.phone}, {label:'ພໍ່',value:s.father}, {label:'ແມ່',value:s.mother}, {label:'ທີ່ຢູ່',value:s.address}
+            ]).filter(x => x && x.value).map(x => `<div class="student-info-item"><b>${x.label}:</b> ${x.value}</div>`).join('')}
+          </div>
+        </div>
+        <div class="report-table-wrap">
+          <table class="report-table" id="scoreTable">
+            <thead>
+              <tr>
+                <th style="min-width:100px;">ກຸ່ມວິຊາ</th>
+                <th style="min-width:130px;">ວິຊາຮຽນ</th>
+                <th>09</th><th>10</th><th>11</th><th>12</th>
+                <th style="background:#e0f2fe;">Avg I</th><th style="background:#e0f2fe;">Exam I</th><th style="background:#bae6fd;">Tot I</th>
+                <th>02</th><th>03</th><th>04</th><th>05</th>
+                <th style="background:#fef3c7;">Avg II</th><th style="background:#fef3c7;">Exam II</th><th style="background:#fde68a;">Tot II</th>
+                <th style="background:#C9A24B; color:white;">Year</th><th>Fix</th><th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="scoreBody"><tr><td colspan="19">ກຳລັງໂຫຼດ...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  await fetchStudentScores(s);
+}
+
+async function fetchStudentScores(s) {
+  const scoreSheetId = getScoreSheetId(s.room);
+  const bodyEl = document.getElementById('scoreBody');
+  if (!scoreSheetId) { bodyEl.innerHTML = '<tr><td colspan="19">ຍັງບໍ່ມີຂໍ້ມູນ</td></tr>'; return; }
+  bodyEl.innerHTML = '<tr><td colspan="19">ກຳລັງໂຫຼດຄະແນນ...</td></tr>';
+
+  const subjectCodeMap = { ...DEFAULT_SUBJECT_CODE_MAP, ...(sheetConfig.subjectMap || {}) };
+  const monthTabs = [
+    {key:0,tabs:['M9','09','ເດືອນ 9']},{key:1,tabs:['M10','10','ເດືອນ 10']},{key:2,tabs:['M11','11','ເດືອນ 11']},{key:3,tabs:['M12','12','ເດືອນ 12']},
+    {key:4,tabs:['MIX 4M TERM I','AVG I','AVERAGE I']},{key:5,tabs:['SEMESTER I','EXAM I']},{key:6,tabs:['FINAL SEMESTER I','TOT I','TOTAL I']},
+    {key:7,tabs:['M2','02','ເດືອນ 2']},{key:8,tabs:['M3','03','ເດືອນ 3']},{key:9,tabs:['M4','04','ເດືອນ 4']},{key:10,tabs:['M5','05','ເດືອນ 5']},
+    {key:11,tabs:['MIX 4M TERM II','AVG II','AVERAGE II']},{key:12,tabs:['SEMESTER II','EXAM II']},{key:13,tabs:['FINAL SEMESTER II','TOT II','TOTAL II']},
+    {key:14,tabs:['ALL YEARS 2025-2026','ALL YEARS','YEAR']},{key:15,tabs:['Fix']},{key:16,tabs:['Note']}
+  ];
+  const subjectCodes = Array.from({length:11},(_,i)=>`S${i+1}`);
+  const results = subjectCodes.map(code=>({code,g:'ລາຍວິຊາ',s:subjectCodeMap[code]||code,d:Array(17).fill('-')}));
+  const normalize = str => (str||'').toString().toLowerCase().replace(/\s+/g,'').trim();
+
+  function findStudentRow(rows) {
+    const id=normalize(s.id), fullName=normalize(`${s.firstName||''}${s.lastName||''}`);
+    if(id){
+      for(let i=0;i<rows.length;i++) if((rows[i]||[]).some(v=>normalize(v)===id)) return i;
+      for(let i=0;i<rows.length;i++) if(normalize((rows[i]||[]).join('')).includes(id)) return i;
+    }
+    if(fullName){
+      for(let i=0;i<rows.length;i++){ const name=normalize((rows[i]||[]).slice(0,8).join('')); if(name.includes(fullName)||fullName.includes(name)) return i; }
+    }
+    return -1;
+  }
+  function findScoreHeader(rows) {
+    for(let i=0;i<Math.min(rows.length,25);i++){ const cells=rows[i]||[]; const count=subjectCodes.filter(c=>cells.some(v=>normalize(v)===normalize(c))).length; if(count>=2) return {index:i,row:cells}; }
+    return null;
+  }
+  function inferSubjectName(rows,headerIndex,col,code){
+    for(let r=Math.max(0,headerIndex-3);r<=Math.min(rows.length-1,headerIndex+3);r++){
+      const v=String((rows[r]||[])[col]??'').trim();
+      if(v && normalize(v)!==normalize(code) && !/^S\d+$/i.test(v) && !/^[-.]+$/.test(v)) return v;
+    }
+    return subjectCodeMap[code]||code;
+  }
+
+  const fetchPromises=monthTabs.map(async m=>{
+    let csvData=null;
+    for(const tabName of m.tabs){
+      try{ const url=`https://docs.google.com/spreadsheets/d/${scoreSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`; const resp=await fetch(url); if(resp.ok && (resp.headers.get('content-type')||'').includes('csv')){ const text=await resp.text(); if(text&&text.trim()&&!text.includes('<!DOCTYPE html>')){csvData=text;break;} } }catch(e){}
+    }
+    if(!csvData)return;
+    const rows=Papa.parse(csvData.trim(),{skipEmptyLines:true}).data;
+    if(!rows||rows.length<2)return;
+    const header=findScoreHeader(rows); if(!header)return;
+    const studentRowIdx=findStudentRow(rows); if(studentRowIdx<0)return;
+    const studentRow=rows[studentRowIdx]||[];
+    subjectCodes.forEach(code=>{
+      const col=header.row.findIndex(v=>normalize(v)===normalize(code)); if(col<0)return;
+      const result=results.find(x=>x.code===code); if(!result)return;
+      if(!sheetConfig.subjectMap || !sheetConfig.subjectMap[code]) result.s=inferSubjectName(rows,header.index,col,code);
+      const raw=studentRow[col];
+      if(raw!==undefined&&raw!==null&&String(raw).trim()!=='') result.d[m.key]=String(raw).trim();
+    });
+  });
+  await Promise.allSettled(fetchPromises);
+
+  bodyEl.innerHTML=results.map(r=>`<tr><td style="text-align:left;font-size:10px;color:#666;">${r.code}</td><td style="text-align:left;font-weight:600;">${r.s}</td>${r.d.map((v,i)=>{let style='';if(i===4||i===5||i===6)style='background:#f0f9ff;';else if(i===11||i===12||i===13)style='background:#fffbeb;';else if(i===14)style='background:#C9A24B;color:white;font-weight:700;';return `<td style="${style}">${v}</td>`;}).join('')}</tr>`).join('');
+}
+
+function closeDetail() { document.getElementById('detailOverlay').innerHTML = ''; }
+function closeSettings() { document.getElementById('settingsOverlay').innerHTML = ''; }
+function extractSheetId(val) { return (val || '').match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] || (val || '').trim(); }
+
+function openSettings() {
+  const savedRooms=sheetConfig.scoreSheetsByRoom||{};
+  tempScoreSheets=Object.keys(savedRooms).map(room=>({room,sheetId:savedRooms[room]}));
+  if(tempScoreSheets.length===0)tempScoreSheets=[{room:'',sheetId:''}];
+  const overlay=document.getElementById('settingsOverlay');
+  const subjectMap={...DEFAULT_SUBJECT_CODE_MAP,...(sheetConfig.subjectMap||{})};
+  overlay.innerHTML=`<div class="detail-overlay" onclick="if(event.target===this)closeSettings()"><div class="settings-card" style="max-height:88vh;overflow-y:auto;">
+    <div class="detail-header"><div class="detail-name">⚙️ ຕັ້ງຄ່າ</div><button class="close-btn" onclick="closeSettings()">✕</button></div>
+    <label class="settings-label">🔒 ອີເມວທີ່ອະນຸມັດ (Admin)</label><input type="text" id="emailInput" value="${settingsConfig.approvedEmail||''}">
+    <label class="settings-label">1️⃣ ຂໍ້ມູນນັກຮຽນ (Google Sheet URL)</label><input type="text" id="rosterSheetInput" value="${sheetConfig.rosterSheetId||''}" placeholder="ວາງ Google Sheets URL ຂໍ້ມູນນັກຮຽນ">
+    <div class="settings-note">ຕາຕະລາງນີ້ໃຊ້ສຳລັບຊື່, ລະຫັດ, ເບີໂທ, ພໍ່, ແມ່, ຜູ້ປົກຄອງ ແລະຂໍ້ມູນອື່ນໆ. ຂໍ້ມູນໃນ Sheet ຢູ່ແນວນອນ ແຕ່ໜ້າເວັບຈະສະແດງແນວຕັ້ງ.</div>
+    <label class="settings-label">2️⃣ ໃບແຈ້ງຄະແນນ (ແຍກຕາມຫ້ອງ)</label><div id="scoreSheetsContainer"></div><button class="test-btn" onclick="addScoreSheetRow()" style="width:100%;">➕ ເພີ່ມລິ້ງຄະແນນ</button>
+    <div class="subject-map-box"><label class="settings-label">3️⃣ ກຳນົດ S1-S11 ເປັນວິຊາ</label><div class="settings-note">S1-S11 ແມ່ນລະຫັດຄໍລຳຄະແນນໃນ Google Sheet. ຄະແນນຈະອ່ານຈາກເຊວຈິງຂອງ S ແຕ່ລະຕົວ; ຊື່ວິຊາໃຊ້ສຳລັບການສະແດງ.</div>${Array.from({length:11},(_,i)=>{const code=`S${i+1}`;return `<div class="subject-map-row"><div class="subject-map-code">${code}</div><input type="text" id="subject_${code}" value="${subjectMap[code]||''}" placeholder="ຊື່ວິຊາສຳລັບ ${code}"></div>`;}).join('')}</div>
+    <button class="save-btn" onclick="saveSettings()" style="margin-top:20px;">ບັນທຶກ</button>
+  </div></div>`;
+  renderScoreSheetRows();
+}
+
+function renderScoreSheetRows(){const container=document.getElementById('scoreSheetsContainer');if(!container)return;container.innerHTML=tempScoreSheets.map((item,idx)=>`<div class="score-sheet-row"><div class="score-sheet-row-top"><input type="text" placeholder="ຊື່ຫ້ອງ (ມ.4)" value="${item.room||''}" oninput="tempScoreSheets[${idx}].room=this.value"><button class="close-btn" onclick="tempScoreSheets.splice(${idx},1);renderScoreSheetRows()">✕</button></div><input type="text" placeholder="Google Sheet URL ຄະແນນ" value="${item.sheetId||''}" oninput="tempScoreSheets[${idx}].sheetId=this.value"></div>`).join('');}
+function addScoreSheetRow(){tempScoreSheets.push({room:'',sheetId:''});renderScoreSheetRows();}
+async function saveSettings(){
+  const r=document.getElementById('rosterSheetInput');
+  const rId=extractSheetId(r?r.value:''); const scoreSheetsByRoom={};
+  tempScoreSheets.forEach(item=>{const room=(item.room||'').trim(),sheetId=extractSheetId(item.sheetId||'');if(room&&sheetId)scoreSheetsByRoom[room]=sheetId;});
+  const subjectMap={}; for(let i=1;i<=11;i++){const code=`S${i}`,el=document.getElementById(`subject_${code}`);subjectMap[code]=el?el.value.trim():'';}
+  sheetConfig={...sheetConfig,rosterSheetId:rId,scoreSheetsByRoom,subjectMap:{...DEFAULT_SUBJECT_CODE_MAP,...subjectMap}};
+  settingsConfig.approvedEmail=document.getElementById('emailInput').value;
+  localStorage.setItem('sheetConfig',JSON.stringify(sheetConfig));localStorage.setItem('settingsConfig',JSON.stringify(settingsConfig));
+  alert('ບັນທຶກສຳເລັດ! ລິ້ງຂໍ້ມູນນັກຮຽນ, ລິ້ງຄະແນນ ແລະ S1-S11 ຖືກບັນທຶກແລ້ວ');location.reload();
+}
+
+// ORIGINAL GOOGLE LOGIN LOGIC
+function initGoogleLogin(buttonElementId) {
+  try {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleLogin,
+      auto_select: false,
+      itp_support: true
+    });
+    google.accounts.id.renderButton(
+      document.getElementById(buttonElementId),
+      { theme: 'outline', size: 'large', text: 'signin_with' }
+    );
+  } catch (err) {}
+}
+
+function base64UrlDecode(str) {
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) base64 += '=';
+  return decodeURIComponent(atob(base64).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join(''));
+}
+
+function handleGoogleLogin(response) {
+  try {
+    const payload = JSON.parse(base64UrlDecode(response.credential.split('.')[1]));
+    currentUser = { email: payload.email, name: payload.name };
+    checkMyAccess();
+  } catch (err) {}
+}
+
+async function checkMyAccess() {
+  const res = await callAPI('login', { email: currentUser.email });
+  currentAccess = res;
+  if (!res.found) showRequestAccessForm();
+  else if (res.status !== 'ອະນຸມັດ') { showPendingApprovalState(); startPollingApprovalStatus(); }
+  else { stopPollingApprovalStatus(); onLoginSuccess(res); }
+}
+
+async function submitAccessRequest(room) {
+  const res = await callAPI('requestAccess', { email: currentUser.email, name: currentUser.name, room: room });
+  if (res.error) { alert('❌ เกิดข้อผิดพลาด: ' + res.error); return; }
+  showPendingApprovalState();
+  startPollingApprovalStatus();
+}
+
+async function callAPI(action, data) {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, ...data }) });
+    return await res.json();
+  } catch (err) { return { error: 'ເຊື່ອມຕໍ່ບໍ່ໄດ້' }; }
+}
+
+function showRequestAccessForm() {
+  document.getElementById('loginStep').style.display = 'none';
+  document.getElementById('requestStep').style.display = 'block';
+}
+
+function showPendingApprovalState() {
+  document.getElementById('loginStep').style.display = 'none';
+  document.getElementById('requestStep').style.display = 'none';
+  document.getElementById('pendingStep').style.display = 'block';
+}
+
+function startPollingApprovalStatus() {
+  stopPollingApprovalStatus();
+  pollingInterval = setInterval(async () => {
+    const res = await callAPI('login', { email: currentUser.email });
+    if (res.status === 'ອະນຸມັດ') { stopPollingApprovalStatus(); currentAccess = res; onLoginSuccess(res); }
+  }, 3000);
+}
+
+function stopPollingApprovalStatus() { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } }
+
+function onLoginSuccess(access) {
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  onLoginSuccessFromAuth(access);
+}
+
+function doAccessRequest() {
+  const room = document.getElementById('roomReqInput').value.trim();
+  if (!room) { alert('ກະລຸນາໃສ່ຫ້ອງ'); return; }
+  submitAccessRequest(room);
+}
+
+(function waitForGoogleAndInit() {
+  const btn = document.getElementById('google-login-btn');
+  if (!btn) { setTimeout(waitForGoogleAndInit, 150); return; }
+  if (window.google && window.google.accounts) initGoogleLogin('google-login-btn');
+  else {
+    let count = 0;
+    const timer = setInterval(() => {
+      count++;
+      if (window.google && window.google.accounts) { clearInterval(timer); initGoogleLogin('google-login-btn'); }
+      else if (count > 30) clearInterval(timer);
+    }, 150);
+  }
+})();
+
+function downloadExcel(idx) {
+  const table = document.getElementById('scoreTable');
+  const wb = XLSX.utils.table_to_book(table);
+  XLSX.writeFile(wb, `ປຶ້ມຕິດຕາມ_${students[idx].firstName}.xlsx`);
+}
+
+function downloadPDF(filename) {
+  const element = document.getElementById('reportCardContent');
+  const opt = { margin: 0.5, filename: filename + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } };
+  html2pdf().set(opt).from(element).save();
+}
+
+</script>
+</body>
+</html>
